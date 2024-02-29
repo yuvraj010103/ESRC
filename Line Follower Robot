@@ -1,0 +1,94 @@
+const int motorL_pina=4;
+const int motorL_pinb=5;
+const int irL =A0;
+const int motorR_pina=6;
+const int motorR_pinb=7;
+const int irR =A1;
+const int motor_speedcontrolL =9;
+const int motor_speedcontrolR =3;
+const int WHITE=0;
+const int BLACK=1;
+
+
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(motorL_pina,OUTPUT);
+  pinMode(motorL_pinb,OUTPUT);
+  pinMode(irL,INPUT);
+  pinMode(motorR_pina,OUTPUT);
+  pinMode(motorR_pinb,OUTPUT);
+  pinMode(irR,INPUT);
+  pinMode(motor_speedcontrolR,OUTPUT);
+  pinMode( motor_speedcontrolL,OUTPUT);
+  Serial.begin(9600);
+}
+void forwardL( int speedL){
+  analogWrite(motor_speedcontrolL, speedL);
+  digitalWrite(motorL_pina,0);
+  digitalWrite(motorL_pinb,1);
+} 
+//motor2
+void forwardR( int speedR){ 
+  analogWrite(motor_speedcontrolR, speedR);
+  digitalWrite(motorR_pina,0);
+  digitalWrite(motorR_pinb,1);
+}
+
+void stoppingL(void){
+  digitalWrite(motorL_pina,1);
+  digitalWrite(motorL_pinb,1);
+ 
+
+}
+void stoppingR(void){
+   digitalWrite(motorR_pina,1);
+  digitalWrite(motorR_pinb,1);
+}
+void reverseL(int reversespeedL){
+  digitalWrite(motorL_pina,1);
+  digitalWrite(motorL_pinb,0);
+  analogWrite(motor_speedcontrolL, reversespeedL);
+
+}  
+void reverseR(int reversespeedR){
+  digitalWrite(motorR_pina,1);
+  digitalWrite(motorR_pinb,0);
+  analogWrite(motor_speedcontrolR, reversespeedR);
+}
+
+void loop() {
+  int sensordataL;
+  sensordataL= digitalRead(irL);
+  if(sensordataL==0){
+    forwardL(30); 
+  }
+  if(sensordataL==1){
+    //stoppingL(); 
+    reverseL(30); 
+  
+  }
+  //motor2
+  int sensordataR;
+  sensordataR= digitalRead(irR);
+   if(sensordataR==0){
+    forwardR(33);  
+  }
+  if(sensordataR==1){
+    //stoppingR(); 
+    reverseR(30); 
+  
+  }
+  if(sensordataR==1 && sensordataL==1){
+    reverseR(20);
+    
+    
+  }
+
+}  
+
+/*void forward2(int speed2){
+ analogWrite(motor_speedcontrol2, speed2);
+ digitalWrite(motor2_pina,0);
+ digitalWrite(motor2_pinb,1);
+}*/
