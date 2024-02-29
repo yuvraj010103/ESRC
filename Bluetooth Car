@@ -1,0 +1,122 @@
+const int motorL_pina=4;
+const int motorL_pinb=5;
+//const int ir_sensorL =A0;
+//const int ir_sensorL =A1;
+const int motorR_pina=6;
+const int motorR_pinb=7;
+const int motor_speedcontrolL =9;
+const int motor_speedcontrolR =3;                               
+
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(motorL_pina,OUTPUT);
+  pinMode(motorL_pinb,OUTPUT);
+//  pinMode(ir_sensorL,INPUT);
+  // pinMode(ir_sensorR,INPUT);
+  pinMode(motorR_pina,OUTPUT);
+  pinMode(motorR_pinb,OUTPUT);
+  pinMode(motor_speedcontrolR,OUTPUT);
+  pinMode( motor_speedcontrolL,OUTPUT);
+  Serial.begin(9600);
+}
+void forwardL( int speedL){
+  analogWrite(motor_speedcontrolL, speedL);
+  digitalWrite(motorL_pina,1);
+  digitalWrite(motorL_pinb,0);
+} 
+//motor2
+void forwardR( int speedR){ 
+  analogWrite(motor_speedcontrolR, speedR);
+  digitalWrite(motorR_pina,1);
+ digitalWrite(motorR_pinb,0);
+}
+
+void stoppingL(void){
+  digitalWrite(motorL_pina,1);
+  digitalWrite(motorL_pinb,1);
+ 
+
+}
+void stoppingR(void){
+   digitalWrite(motorR_pina,1);
+  digitalWrite(motorR_pinb,1);
+}
+void reverseL(int reversespeedL){
+  digitalWrite(motorL_pina,0);
+  digitalWrite(motorL_pinb,1);
+  analogWrite(motor_speedcontrolL, reversespeedL);
+}
+void reverseR(int reversespeedR){
+   digitalWrite(motorR_pina,0);
+  digitalWrite(motorR_pinb,1);
+  analogWrite(motor_speedcontrolR, reversespeedR);
+}  
+void turn_right(void){
+  forwardL(60);
+  forwardR(20);
+}
+void turn_left(void){
+  forwardL(60);
+  forwardR(20);
+}
+
+
+void loop() {
+  char cha;
+   if(Serial.available()>0){
+     cha=Serial.read();
+     delay(2);
+    
+  }
+  //triangle
+  if(cha=='2'){
+    forwardL(31); 
+    forwardR(33);
+  }
+  //circle
+   if(cha=='4'){
+      reverseR(30); 
+      reverseL(28);
+   
+  }
+  //cross
+  if(cha=='1'){
+    turn_right();
+}
+//box
+  if(cha=='3'){
+    turn_left();
+}
+//handbrake
+  if(cha=='M'){
+    stoppingL();
+    stoppingR();
+  }
+  //up
+  if(cha=='F'){
+    forwardL(100); 
+    forwardR(103);
+  }
+  //down
+   if(cha=='B'){
+      reverseR(50); 
+      reverseL(48);
+   
+  }
+  //right
+  if(cha=='R'){
+    turn_right();
+}
+//left
+  if(cha=='L'){
+    turn_left();
+}
+
+}  
+
+/*void forward2(int speed2){
+ analogWrite(motor_speedcontrol2, speed2);
+ digitalWrite(motor2_pina,0);
+ digitalWrite(motor2_pinb,1);
+}*/
