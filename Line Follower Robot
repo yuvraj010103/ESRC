@@ -1,94 +1,91 @@
-const int motorL_pina=4;
-const int motorL_pinb=5;
-const int irL =A0;
-const int motorR_pina=6;
-const int motorR_pinb=7;
-const int irR =A1;
-const int motor_speedcontrolL =9;
-const int motor_speedcontrolR =3;
-const int WHITE=0;
-const int BLACK=1;
+const int motorL_pina = 4;
+const int motorL_pinb = 5;
+const int irL = A0;
+const int motorR_pina = 6;
+const int motorR_pinb = 7;
+const int irR = A1;
+const int motor_speedcontrolL = 9;
+const int motor_speedcontrolR = 3;
+const int WHITE = 0;
+const int BLACK = 1;
 
-
+// PID Variables
+float Kp = 25;    // Proportional gain (tune this)
+float Ki = 0.1;   // Integral gain (tune this)  
+float Kd = 35;    // Derivative gain (tune this)
+float error = 0, previous_error = 0, integral = 0, derivative = 0;
+float PID_value = 0;
+int base_speed = 80;  // Base motor speed (0-255)
 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(motorL_pina,OUTPUT);
-  pinMode(motorL_pinb,OUTPUT);
-  pinMode(irL,INPUT);
-  pinMode(motorR_pina,OUTPUT);
-  pinMode(motorR_pinb,OUTPUT);
-  pinMode(irR,INPUT);
-  pinMode(motor_speedcontrolR,OUTPUT);
-  pinMode( motor_speedcontrolL,OUTPUT);
+  pinMode(motorL_pina, OUTPUT);
+  pinMode(motorL_pinb, OUTPUT);
+  pinMode(irL, INPUT);
+  pinMode(motorR_pina, OUTPUT);
+  pinMode(motorR_pinb, OUTPUT);
+  pinMode(irR, INPUT);
+  pinMode(motor_speedcontrolR, OUTPUT);
+  pinMode(motor_speedcontrolL, OUTPUT);
   Serial.begin(9600);
 }
-void forwardL( int speedL){
+
+void forwardL(int speedL) {
   analogWrite(motor_speedcontrolL, speedL);
-  digitalWrite(motorL_pina,0);
-  digitalWrite(motorL_pinb,1);
-} 
-//motor2
-void forwardR( int speedR){ 
+  digitalWrite(motorL_pina, 0);
+  digitalWrite(motorL_pinb, 1);
+}
+
+void forwardR(int speedR) {
   analogWrite(motor_speedcontrolR, speedR);
-  digitalWrite(motorR_pina,0);
-  digitalWrite(motorR_pinb,1);
+  digitalWrite(motorR_pina, 0);
+  digitalWrite(motorR_pinb, 1);
 }
 
-void stoppingL(void){
-  digitalWrite(motorL_pina,1);
-  digitalWrite(motorL_pinb,1);
- 
-
+void stoppingL(void) {
+  digitalWrite(motorL_pina, 1);
+  digitalWrite(motorL_pinb, 1);
 }
-void stoppingR(void){
-   digitalWrite(motorR_pina,1);
-  digitalWrite(motorR_pinb,1);
-}
-void reverseL(int reversespeedL){
-  digitalWrite(motorL_pina,1);
-  digitalWrite(motorL_pinb,0);
-  analogWrite(motor_speedcontrolL, reversespeedL);
 
-}  
-void reverseR(int reversespeedR){
-  digitalWrite(motorR_pina,1);
-  digitalWrite(motorR_pinb,0);
-  analogWrite(motor_speedcontrolR, reversespeedR);
+void stoppingR(void) {
+  digitalWrite(motorR_pina, 1);
+  digitalWrite(motorR_pinb, 1);
+}
+
+void calculate_pid() {
+  // Calculate position error: -100 (left), 0 (center), +100 (right)
+  int left_sensor = digitalRead(irL);   // 0=white, 1=black
+  int right_sensor = digitalRead(irR);
+  
+  if (left_sensor == BLACK && right_sensor == WHITE) error = -100;    // Sharp left
+  else if (left_sensor == WHITE && right_sensor == BLACK) error = 100; // Sharp right
+  else if (left_sensor == BLACK && right_sensor == BLACK) error = 0;   // On line
+  else error = 0;  // Both white - lost line
+  
+  // PID Calculation
+  integral += error;
+  integral = constrain(integral, -50, 50);  // Anti-windup
+  derivative = error - previous_error;
+  
+  PID_value = (Kp * error) + (Ki * integral) + (Kd * derivative);
+  previous_error = error;
+  
+  Serial.print("Error: "); Serial.print(error);
+  Serial.print(" PID: "); Serial.println(PID_value);
 }
 
 void loop() {
-  int sensordataL;
-  sensordataL= digitalRead(irL);
-  if(sensordataL==0){
-    forwardL(30); 
-  }
-  if(sensordataL==1){
-    //stoppingL(); 
-    reverseL(30); 
+  calculate_pid();
   
-  }
-  //motor2
-  int sensordataR;
-  sensordataR= digitalRead(irR);
-   if(sensordataR==0){
-    forwardR(33);  
-  }
-  if(sensordataR==1){
-    //stoppingR(); 
-    reverseR(30); 
+  int left_speed = base_speed + PID_value;
+  int right_speed = base_speed - PID_value;
   
-  }
-  if(sensordataR==1 && sensordataL==1){
-    reverseR(20);
-    
-    
-  }
-
-}  
-
-/*void forward2(int speed2){
- analogWrite(motor_speedcontrol2, speed2);
- digitalWrite(motor2_pina,0);
- digitalWrite(motor2_pinb,1);
-}*/
+  // Constrain speeds
+  left_speed = constrain(left_speed, 0, 255);
+  right_speed = constrain(right_speed, 0, 255);
+  
+  // Drive motors
+  forwardL(left_speed);
+  forwardR(right_speed);
+  
+  delay(10);  // Loop timing
+}
